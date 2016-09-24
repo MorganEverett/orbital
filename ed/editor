@@ -1,0 +1,61 @@
+#!/bin/sh
+
+function cntLines {
+  cnt=0;
+  while read -r line
+  do
+    if [ "$line" = "EOF" ]; then
+      break;
+    else
+      ((cnt++));
+    fi
+  done <<<"$1"
+  echo $cnt;
+}
+
+function printLines {
+  cnt=0;
+  while read -r line
+  do
+    if [ $cnt -eq $1 ]; then
+      echo "$line";
+      break;
+  else
+      ((cnt++));
+    fi
+  done <<<"$editBuffer"
+}
+
+fileBuffer=$(<"test")$(echo; echo "EOF");
+editBuffer=$fileBuffer;
+nbLines=$(cntLines "$editBuffer");
+
+echo $nbLines;
+
+while read -r line
+do
+  if [[ $line =~ [1-9][0-9]* ]]; then
+    if [ $line -gt $nbLines ]; then
+      echo '?';
+    else
+      printLines $line;
+    fi
+  elif [ "$line" = 'a' ]; then
+    appendBuffer=$(echo "a"; echo "EOF");
+    while read -r appendLine
+    do
+      if [ "$appendLine" = "." ]; then
+        break;
+      else
+        appendBuffer=${appendBuffer%EOF}$(echo "$appendLine"; echo "EOF");
+      fi
+    done
+    echo "$appendBuffer";
+  elif [ "$line" = 'p' ]; then
+    echo "$fileBuffer";
+  elif [ "$line" = 'q' ]; then
+    break;
+  else
+    echo '?';
+  fi
+done
